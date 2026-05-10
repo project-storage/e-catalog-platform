@@ -1,16 +1,23 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config({ path: './config.env' })
 
 const authenticateToken = (req, res, next) => {
     const token = req.header('Authorization')?.split(' ')[1];
-    if (!token) return res.status(401).json({ message: 'Access Denied' });
+    if (!token) {
+        return res.status(401).json({ 
+            success: false,
+            message: 'Access Denied: No token provided' 
+        });
+    }
 
     try {
         const verified = jwt.verify(token, process.env.JWT_SECRET);
         req.user = verified;
         next();
     } catch (error) {
-        res.status(400).json({ message: 'Invalid Token' });
+        res.status(400).json({ 
+            success: false,
+            message: 'Invalid Token' 
+        });
     }
 };
 

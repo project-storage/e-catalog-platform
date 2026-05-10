@@ -1,12 +1,12 @@
-const customerModel = require('../models/customer.model')
+const customerModel = require('../models/customer.model');
 
-const getInfoCustomer = async (req,res) => {
+const getInfoCustomer = async (req, res) => {
     try {
-        const dataCustomer = await customerModel.find({sale:req.user._id})
-        return res.status(200).json({data:dataCustomer})
-
+        const customers = await customerModel.find({ sale: req.user._id });
+        res.status(200).json({ success: true, data: customers });
     } catch (error) {
-        return res.status(500).json({meg:"Internal server error"})
+        console.error("GetInfoCustomer Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -14,30 +14,25 @@ const createCustomer = async (req, res) => {
     try {
         const { title, firstName, lastName, email, tel, address, sale } = req.body;
 
-        // ตรวจสอบว่ามีข้อมูลที่จำเป็นทั้งหมดหรือไม่
         if (!title || !firstName || !lastName || !email || !tel || !address || !sale) {
-            return res.status(400).json({ msg: "กรุณากรอกข้อมูลให้ครบ" });
+            return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบ" });
         }
 
-        // ตรวจสอบเบอร์โทรให้ครบ 10 ตำแหน่ง
-        if (typeof tel !== 'string' || tel.length !== 10) {
-            return res.status(400).json({ msg: "กรุณากรอกเบอร์โทรให้ครบ 10 ตำแหน่ง" });
+        if (tel.length !== 10) {
+            return res.status(400).json({ success: false, message: "กรุณากรอกเบอร์โทรให้ครบ 10 ตำแหน่ง" });
         }
 
-        // ตรวจสอบว่าอีเมล์หรือเบอร์โทรนี้ถูกใช้งานแล้วหรือไม่
         const existingEmail = await customerModel.findOne({ email });
-        const existingTel = await customerModel.findOne({ tel });
-
         if (existingEmail) {
-            return res.status(400).json({ msg: "อีเมลนี้ถูกใช้งานแล้ว" });
+            return res.status(400).json({ success: false, message: "อีเมลนี้ถูกใช้งานแล้ว" });
         }
 
+        const existingTel = await customerModel.findOne({ tel });
         if (existingTel) {
-            return res.status(400).json({ msg: "เบอร์โทรนี้ถูกใช้งานแล้ว" });
+            return res.status(400).json({ success: false, message: "เบอร์โทรนี้ถูกใช้งานแล้ว" });
         }
 
-        // สร้างลูกค้าใหม่
-        const newCustomer = new customerModel({
+        const newCustomer = await new customerModel({
             title,
             firstName,
             lastName,
@@ -45,26 +40,27 @@ const createCustomer = async (req, res) => {
             tel,
             address,
             sale
-        });
+        }).save();
 
-        await newCustomer.save();
-        // console.log(newCustomer)
-        res.status(201).json({ msg: "Customer created successfully", data: newCustomer });
+         console.log(newCustomer)       
+        res.status(201).json({ 
+            success: true, 
+            message: "Customer created successfully", 
+            data: newCustomer 
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("CreateCustomer Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
-
 const getAllCustomer = async (req, res) => {
     try {
-        const custermers = await customerModel.find({}).populate('sale')
-
-        res.status(200).json({ msg: "get all customer success", data: custermers })
+        const customers = await customerModel.find({}).populate('sale');
+        res.status(200).json({ success: true, message: "All customers retrieved", data: customers });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("GetAllCustomer Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -74,13 +70,13 @@ const getCustomerById = async (req, res) => {
         const customer = await customerModel.findById(id).populate('sale');
 
         if (!customer) {
-            return res.status(404).json({ msg: "Customer not found" });
+            return res.status(404).json({ success: false, message: "Customer not found" });
         }
 
-        res.status(200).json({ msg: "Customer retrieved successfully", data: customer });
+        res.status(200).json({ success: true, message: "Customer retrieved successfully", data: customer });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("GetCustomerById Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -89,36 +85,32 @@ const updateCustomer = async (req, res) => {
         const { id } = req.params;
         const { title, firstName, lastName, email, tel, address, sale } = req.body;
 
-        // Validate input
         if (!title || !firstName || !lastName || !email || !tel || !address || !sale) {
-            return res.status(400).json({ msg: "กรุณากรอกข้อมูลให้ครบ" });
+            return res.status(400).json({ success: false, message: "กรุณากรอกข้อมูลให้ครบ" });
         }
 
-        // Validate phone number length
         if (tel.length !== 10) {
-            return res.status(400).json({ msg: "กรุณากรอกเบอร์โทรให้ครบ 10 ตำแหน่ง" });
+            return res.status(400).json({ success: false, message: "กรุณากรอกเบอร์โทรให้ครบ 10 ตำแหน่ง" });
         }
 
-        const customer = await customerModel.findById(id);
-        if (!customer) {
-            return res.status(404).json({ msg: "Customer not found" });
+        const updatedCustomer = await customerModel.findByIdAndUpdate(id, {
+            title,
+            firstName,
+            lastName,
+            email,
+            tel,
+            address,
+            sale
+        }, { new: true });
+
+        if (!updatedCustomer) {
+            return res.status(404).json({ success: false, message: "Customer not found" });
         }
 
-        // Update fields
-        customer.title = title;
-        customer.firstName = firstName;
-        customer.lastName = lastName;
-        customer.email = email;
-        customer.tel = tel;
-        customer.address = address;
-        customer.sale = sale;
-
-        await customer.save();
-
-        res.status(200).json({ msg: "Customer updated successfully", data: customer });
+        res.status(200).json({ success: true, message: "Customer updated successfully", data: updatedCustomer });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("UpdateCustomer Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 
@@ -128,13 +120,13 @@ const deleteCustomer = async (req, res) => {
         const customer = await customerModel.findByIdAndDelete(id);
 
         if (!customer) {
-            return res.status(404).json({ msg: "Customer not found" });
+            return res.status(404).json({ success: false, message: "Customer not found" });
         }
 
-        res.status(200).json({ msg: "Customer deleted successfully" });
+        res.status(200).json({ success: true, message: "Customer deleted successfully" });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("DeleteCustomer Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 }
 

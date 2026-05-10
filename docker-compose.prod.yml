@@ -1,0 +1,24 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: production
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/config.env
+    environment:
+      - NODE_ENV=production
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+      args:
+        - VITE_API_URL=http://your-production-domain.com/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always

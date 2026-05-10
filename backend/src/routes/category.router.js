@@ -6,7 +6,7 @@ categoryRouter.post('/create', categoriesController.createCategory);
 
 categoryRouter.get('/all', categoriesController.getAllCategory);
 
-categoryRouter.get('/info/:id', categoriesController.getCateoryById);
+categoryRouter.get('/info/:id', categoriesController.getCategoryById);
 
 categoryRouter.put('/update/:id', categoriesController.updateCategory);
 

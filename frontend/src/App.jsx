@@ -1,92 +1,120 @@
-import React from 'react'
-import { BrowserRouter, Route, Router, Routes } from 'react-router-dom'
-import AdminLayout from './Layout/AdminLayout'
-import DashboardAdmin from './pages/Admin/DashboardAdmin'
-import HomePageSale from './pages/sale/HomePageSale'
-import SaleLayout from './Layout/SaleLayout'
-import Login from './pages/auth/Login'
-import ProductsPageAdmin from './pages/Admin/ProductsPageAdmin'
-import CategoriesPageAdmin from './pages/Admin/CategoriesPageAdmin'
-import EditCategoryPageAdmin from './pages/Admin/formEdit/EditCategoryPageAdmin'
-import CreateProductPageAdmin from './pages/Admin/CreateProductPageAdmin'
-import EditProductPageAdmin from './pages/Admin/formEdit/EditProductPageAdmin'
-import ProductPageSale from './pages/sale/ProductPageSale'
-import Register from './pages/auth/Register'
-import Loading from './components/Loading'
-import CustomersPageAdmin from './pages/Admin/CustomersPageAdmin'
-import CreateCustomerPageAdmin from './pages/Admin/CreateCustomerPageAdmin'
-import CustomerPageSale from './pages/sale/CustomerPageSale'
-import CreateCustomerPageSale from './pages/sale/CreateCustomerPageSale'
-import Cart from './pages/sale/Cart'
-import EditCustomerPageAdmin from './pages/Admin/formEdit/EditCustomerPageAdmin'
-import SalesPageAdmin from './pages/Admin/SalesPageAdmin'
-import CreateSalePageAdmin from './pages/Admin/CreateSalePageAdmin'
-import EditSalePageAdmin from './pages/Admin/formEdit/EditSalePageAdmin'
-import OrderProcessPageAdmin from './pages/Admin/OrderProcessPageAdmin'
-import ProfileAdmin from './pages/Admin/ProfileAdmin'
+import React, { Suspense, lazy } from 'react';
+import { Routes, Route, Navigate } from 'react-router';
+import AdminLayout from '@/components/layout/AdminLayout';
+import SaleLayout from '@/components/layout/SaleLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-import OrderPass from './pages/sale/OrderPassPageSale'
-import OrderPassPageAdmin from './pages/Admin/OrderPassPageAdmin'
-import MasterOrderProcessPageAdmin from './pages/Admin/masterTablePage/MasterOrderProcessPageAdmin'
-import MasterOrderPassPageAdmin from './pages/Admin/masterTablePage/MasterOrderPassPageAdmin'
-import MasterOrderFailPageAdmin from './pages/Admin/masterTablePage/MasterOrderFailPageAdmin'
-import OrderFailPageAdmin from './pages/Admin/OrderFailPageAdmin'
-import Pdf from './components/sale/Pdf'
-import HistoryOrderPageSale from './pages/sale/HistoryOrderPageSale';
-import MasterDataOrderHistoryPageSale from './pages/sale/MasterDataPage/MasterDataOrderHistoryPageSale'
-import MasterDataOrderPassPageSale from './pages/sale/MasterDataPage/MasterDataOrderPassPageSale'
-import OrderFailPageSale from './pages/sale/OrderFailPageSale'
-import MasterDataOrderFailPageSale from './pages/sale/MasterDataPage/MasterDataOrderFailPageSale'
-import ProfileSale from './pages/sale/ProfileSale'
-import EditCustomerPageSale from './pages/sale/EditCustomerPageSale'
+// Public Pages
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const RegisterPage = lazy(() => import('@/pages/RegisterPage'));
 
-const App = () => {
+// Admin Pages
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const UsersPage = lazy(() => import('@/pages/UsersPage'));
+const OrdersPage = lazy(() => import('@/pages/admin/OrdersListPage'));
+const OrderDetailPage = lazy(() => import('@/pages/admin/OrderDetailPage'));
+const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage'));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage'));
+const ProductsPage = lazy(() => import('@/pages/admin/ProductsPage'));
+const ProductFormPage = lazy(() => import('@/pages/admin/ProductFormPage'));
+const CategoriesPage = lazy(() => import('@/pages/admin/CategoriesPage'));
+const CategoryEditPage = lazy(() => import('@/pages/admin/CategoryEditPage'));
+const CustomersPage = lazy(() => import('@/pages/admin/CustomersPage'));
+const CustomerFormPage = lazy(() => import('@/pages/admin/CustomerFormPage'));
+const SalesPage = lazy(() => import('@/pages/admin/SalesPage'));
+const SaleFormPage = lazy(() => import('@/pages/admin/SaleFormPage'));
+const ProfilePage = lazy(() => import('@/pages/ProfilePage'));
+const PdfViewPage = lazy(() => import('@/pages/PdfViewPage'));
+
+// Sale Pages
+const SaleDashboardPage = lazy(() => import('@/pages/sale/DashboardPage'));
+const SaleProductsPage = lazy(() => import('@/pages/sale/ProductsPage'));
+const SaleCustomersPage = lazy(() => import('@/pages/sale/CustomersPage'));
+const SaleCustomerFormPage = lazy(() => import('@/pages/sale/CustomerFormPage'));
+const CartPage = lazy(() => import('@/pages/sale/CartPage'));
+const SaleOrdersPage = lazy(() => import('@/pages/sale/OrdersListPage'));
+const SaleOrderDetailPage = lazy(() => import('@/pages/sale/OrderDetailPage'));
+
+// Simple loading fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-screen bg-gray-50">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+);
+
+function App() {
   return (
-    <BrowserRouter>
+    <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path='/loading' element={<Loading />} />
-        <Route path='/' element={<Login />} />
-        <Route path='/register' element={<Register />} />
-        <Route element={<AdminLayout />}>
-          <Route path='/admin/dashboard' element={<DashboardAdmin />} />
-          <Route path='/admin/products' element={<ProductsPageAdmin />} />
-          <Route path='/admin/product/create' element={<CreateProductPageAdmin />} />
-          <Route path='/admin/product/edit/:id' element={<EditProductPageAdmin />} />
-          <Route path='/admin/categories' element={<CategoriesPageAdmin />} />
-          <Route path='/admin/category/eidt/:id' element={<EditCategoryPageAdmin />} />
-          <Route path='/admin/customers' element={<CustomersPageAdmin />} />
-          <Route path='/admin/customer/create' element={<CreateCustomerPageAdmin />} />
-          <Route path='/admin/customer/edit/:id' element={<EditCustomerPageAdmin />} />
-          <Route path='/admin/sales' element={<SalesPageAdmin />} />
-          <Route path='/admin/sale/create' element={<CreateSalePageAdmin />} />
-          <Route path='/admin/sale/edit/:id' element={<EditSalePageAdmin />} />
-          <Route path='/admin/order/process' element={<OrderProcessPageAdmin />} />
-          <Route path='/admin/order/process/detail/:id' element={<MasterOrderProcessPageAdmin />} />
-          <Route path='/admin/order/pass' element={<OrderPassPageAdmin />} />
-          <Route path='/admin/order/pass/detail/:id' element={<MasterOrderPassPageAdmin />} />
-          <Route path='/admin/order/fail' element={<OrderFailPageAdmin />} />
-          <Route path='/admin/order/fail/detail/:id' element={<MasterOrderFailPageAdmin />} />
-          <Route path='/admin/profile' element={<ProfileAdmin />} />
+        {/* Public Routes */}
+        <Route path="/" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+
+        {/* Admin Routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="users" element={<UsersPage />} />
+          
+          <Route path="order/process" element={<OrdersPage status="process" />} />
+          <Route path="order/pass" element={<OrdersPage status="pass" />} />
+          <Route path="order/fail" element={<OrdersPage status="fail" />} />
+          <Route path="order/detail/:id" element={<OrderDetailPage />} />
+          
+          <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="product/create" element={<ProductFormPage />} />
+          <Route path="product/edit/:id" element={<ProductFormPage />} />
+          <Route path="categories" element={<CategoriesPage />} />
+          <Route path="category/edit/:id" element={<CategoryEditPage />} />
+          <Route path="customers" element={<CustomersPage />} />
+          <Route path="customer/create" element={<CustomerFormPage />} />
+          <Route path="customer/edit/:id" element={<CustomerFormPage />} />
+          <Route path="sales" element={<SalesPage />} />
+          <Route path="sale/create" element={<SaleFormPage />} />
+          <Route path="sale/edit/:id" element={<SaleFormPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="order/create-pdf/:id" element={<PdfViewPage />} />
         </Route>
-        <Route element={<SaleLayout />}>
-          <Route path='/sale/dashboard' element={<HomePageSale />} />
-          <Route path='/sale/products' element={<ProductPageSale />} />
-          <Route path='/sale/customers' element={<CustomerPageSale />} />
-          <Route path='/sale/customer/create' element={<CreateCustomerPageSale />} />
-          <Route path='/sale/customer/eidt/:id' element={<EditCustomerPageSale />} />
-          <Route path='/sale/cart' element={<Cart />} />
-          <Route path='/sale/order/list-bils' element={<OrderPass />} />
-          <Route path='/sale/order/list-bil/detail/:id' element={<MasterDataOrderPassPageSale />} />
-          <Route path='/sale/order/histories' element={<HistoryOrderPageSale />} />
-          <Route path='/sale/order/history/detail/:id' element={<MasterDataOrderHistoryPageSale />} />
-          <Route path='/sale/order/fail' element={<OrderFailPageSale />} />
-          <Route path='/sale/order/fail/detail/:id' element={<MasterDataOrderFailPageSale />} />
-          <Route path='/sale/profile' element={<ProfileSale />} />
+
+        {/* Sale Routes */}
+        <Route
+          path="/sale"
+          element={
+            <ProtectedRoute allowedRoles={['sale']}>
+              <SaleLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<SaleDashboardPage />} />
+          <Route path="products" element={<SaleProductsPage />} />
+          <Route path="customers" element={<SaleCustomersPage />} />
+          <Route path="customer/create" element={<SaleCustomerFormPage />} />
+          <Route path="customer/edit/:id" element={<SaleCustomerFormPage />} />
+          <Route path="cart" element={<CartPage />} />
+          
+          <Route path="order/list-bils" element={<SaleOrdersPage status="pass" />} />
+          <Route path="order/histories" element={<SaleOrdersPage status="process" />} />
+          <Route path="order/fail" element={<SaleOrdersPage status="fail" />} />
+          <Route path="order/detail/:id" element={<SaleOrderDetailPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="order/create-pdf/:id" element={<PdfViewPage />} />
         </Route>
-        <Route path='/sale/order/create-pdf/:id' element={<Pdf />} />
+
+        {/* Catch all - redirect to login */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
-  )
+    </Suspense>
+  );
 }
 
-export default App
+export default App;

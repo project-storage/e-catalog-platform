@@ -1,0 +1,25 @@
+services:
+  backend:
+    build:
+      context: .
+      target: development
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+    env_file:
+      - config.env
+    environment:
+      - NODE_ENV=development
+
+  # If you want to run a local MongoDB instance
+  # mongodb:
+  #   image: mongo:latest
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo-data:/data/db
+
+# volumes:
+#   mongo-data:
