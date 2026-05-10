@@ -1,4 +1,10 @@
 require('dotenv').config({ path: './config.env' })
+// Fix for Node.js 25+ compatibility where SlowBuffer is removed
+const buffer = require('buffer');
+if (!buffer.SlowBuffer) {
+    buffer.SlowBuffer = require('buffer').Buffer;
+}
+
 const express = require('express')
 const connectDB = require('./config/db.js')
 const cors = require('cors')

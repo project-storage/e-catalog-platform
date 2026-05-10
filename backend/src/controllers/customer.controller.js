@@ -42,6 +42,7 @@ const createCustomer = async (req, res) => {
             sale
         }).save();
 
+         console.log(newCustomer)       
         res.status(201).json({ 
             success: true, 
             message: "Customer created successfully", 
