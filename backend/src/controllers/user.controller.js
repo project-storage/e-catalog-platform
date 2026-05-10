@@ -1,28 +1,28 @@
-const { hashPassword } = require('../helpers/authHeler');
+const { hashPassword } = require('../helpers/authHelper');
 const userModel = require('../models/user.model');
 
 // Get user info by token
 const getUserInfo = async (req, res) => {
     try {
-        const user = await userModel.findById(req.user._id);
+        const user = await userModel.findById(req.user._id).select('-password');
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
-        res.status(200).json({ data: user });
+        res.status(200).json({ success: true, data: user });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("GetUserInfo Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
-// Get all users
+// Get all users (sales)
 const getAllUsers = async (req, res) => {
     try {
-        const users = await userModel.find({ role: 'sale' }).select('-admin');
-        res.status(200).json({ data: users });
+        const users = await userModel.find({ role: 'sale' }).select('-password');
+        res.status(200).json({ success: true, data: users });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("GetAllUsers Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
@@ -32,19 +32,19 @@ const searchUserByRole = async (req, res) => {
         const { role } = req.query;
 
         if (!role) {
-            return res.status(400).json({ message: "Role is required" });
+            return res.status(400).json({ success: false, message: "Role is required" });
         }
 
-        const users = await userModel.find({ role });
+        const users = await userModel.find({ role }).select('-password');
 
         if (!users || users.length === 0) {
-            return res.status(404).json({ message: "No users found with this role" });
+            return res.status(404).json({ success: false, message: "No users found with this role" });
         }
 
-        res.status(200).json({ users });
+        res.status(200).json({ success: true, data: users });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("SearchUserByRole Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
@@ -52,93 +52,86 @@ const searchUserByRole = async (req, res) => {
 const getUserById = async (req, res) => {
     try {
         const { id } = req.params;
-
-        const user = await userModel.findById(id);
+        const user = await userModel.findById(id).select('-password');
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        res.status(200).json({ data: user });
+        res.status(200).json({ success: true, data: user });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("GetUserById Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
-// update profile
+// Update own profile
 const updateProfile = async (req, res) => {
     try {
         const { title, firstName, lastName, email, password, tel } = req.body;
-        const user = await userModel.findById(req.user._id);
+        const userId = req.user._id;
 
-        // ตรวจสอบว่า user มีอยู่จริงหรือไม่
+        const user = await userModel.findById(userId);
         if (!user) {
-            return res.status(404).json({ msg: "ไม่พบผู้ใช้" });
+            return res.status(404).json({ success: false, message: "ไม่พบผู้ใช้" });
         }
 
-        // // ตรวจสอบเบอร์โทรให้ครบ 10 ตำแหน่ง
-        // if (typeof tel !== 'string' || tel.length !== 10) {
-        //     return res.status(400).json({ msg: "กรุณากรอกเบอร์โทรให้ครบ 10 ตำแหน่ง" });
-        // }
-
-        // ตรวจสอบว่าอีเมลหรือเบอร์โทรนี้ถูกใช้งานแล้วหรือไม่ (ยกเว้นถ้าอีเมลหรือเบอร์เดิม)
-        const existingEmail = await userModel.findOne({ email });
-        const existingTel = await userModel.findOne({ tel });
-
-        if (existingEmail && existingEmail._id.toString() !== user._id.toString()) {
-            return res.status(400).json({ msg: "อีเมลนี้ถูกใช้งานแล้ว" });
+        // Check uniqueness for email and tel if changed
+        if (email && email !== user.email) {
+            const existingEmail = await userModel.findOne({ email });
+            if (existingEmail) return res.status(400).json({ success: false, message: "อีเมลนี้ถูกใช้งานแล้ว" });
         }
 
-        if (existingTel && existingTel._id.toString() !== user._id.toString()) {
-            return res.status(400).json({ msg: "เบอร์โทรนี้ถูกใช้งานแล้ว" });
+        if (tel && tel !== user.tel) {
+            const existingTel = await userModel.findOne({ tel });
+            if (existingTel) return res.status(400).json({ success: false, message: "เบอร์โทรนี้ถูกใช้งานแล้ว" });
         }
 
-        // แฮชรหัสผ่านถ้ามีการเปลี่ยนแปลง
-        let hashedPassword = user.password;
+        const updates = {
+            title: title || user.title,
+            firstName: firstName || user.firstName,
+            lastName: lastName || user.lastName,
+            email: email || user.email,
+            tel: tel || user.tel,
+        };
+
         if (password) {
-            hashedPassword = await hashPassword(password);
+            updates.password = await hashPassword(password);
         }
 
-        // อัปเดตข้อมูลผู้ใช้
-        const updateUser = await userModel.findByIdAndUpdate(
-            req.user._id,
-            {
-                title: title || user.title,
-                firstName: firstName || user.firstName,
-                lastName: lastName || user.lastName,
-                email: email || user.email,
-                password: hashedPassword,
-                tel: tel || user.tel,
-            },
-            { new: true } // Return the updated user
-        );
+        const updatedUser = await userModel.findByIdAndUpdate(userId, updates, { new: true }).select('-password');
 
-        res.status(200).json({ msg: "อัปเดตข้อมูลผู้ใช้สำเร็จ", data: updateUser });
-
+        res.status(200).json({
+            success: true,
+            message: "อัปเดตข้อมูลผู้ใช้สำเร็จ",
+            data: updatedUser
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("UpdateProfile Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
-
-// Update user
+// Update user (admin functionality)
 const updateUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const updates = req.body;
+        const updates = { ...req.body };
 
-        const user = await userModel.findByIdAndUpdate(id, updates, { new: true });
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
+        if (updates.password) {
+            updates.password = await hashPassword(updates.password);
         }
 
-        res.status(200).json({ user });
+        const user = await userModel.findByIdAndUpdate(id, updates, { new: true }).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        res.status(200).json({ success: true, data: user });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("UpdateUser Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 
@@ -146,17 +139,16 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-
         const user = await userModel.findByIdAndDelete(id);
 
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
-        res.status(200).json({ message: "User deleted successfully" });
+        res.status(200).json({ success: true, message: "User deleted successfully" });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        console.error("DeleteUser Error:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
 

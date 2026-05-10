@@ -1,3 +1,4 @@
+require('dotenv').config({ path: './config.env' })
 const express = require('express')
 const connectDB = require('./config/db.js')
 const cors = require('cors')
@@ -26,9 +27,10 @@ app.use('/api/auth', authRouter)
 app.use('/api/product', productRouter)
 app.use('/api/category', categoryRouter)
 app.use('/api/order', orderRouter)
+
 // Define routes
 app.get('/', (req, res) => res.send('Hello World!'));
 
 // Start the server
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
