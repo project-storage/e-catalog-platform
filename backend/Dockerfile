@@ -20,7 +20,7 @@ COPY . .
 # Stage 4: Production image
 FROM node:20-alpine AS production
 WORKDIR /app
-# Only copy the built app and production dependencies
+# Copy only production dependencies and source code
 COPY --from=build /app .
 EXPOSE 8080
 CMD ["node", "src/server.js"]
