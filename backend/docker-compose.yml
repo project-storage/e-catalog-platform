@@ -9,7 +9,7 @@ services:
     ports:
       - "8080:8080"
     env_file:
-      - config.env
+      - .env
     environment:
       - NODE_ENV=development
 

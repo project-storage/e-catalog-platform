@@ -29,7 +29,7 @@ docker-compose -f docker-compose.prod.yml up --build
 ### Configuration
 
 - **Environment Variables:**
-  - Backend variables are managed in `backend/config.env`.
+  - Backend variables are managed in `backend/.env`.
   - Frontend API URL is set via `VITE_API_URL`.
     - In development, it's set in `docker-compose.yml`.
     - In production, it's set as a build argument in `docker-compose.prod.yml`.
